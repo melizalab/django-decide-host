@@ -1,0 +1,34 @@
+
+## django-decide-host
+
+Decide is an event-driven state-machine framework for running behavioral experiments with embeddable computers like the Beaglebone Black. This repository is a Django app that collates event and trial data from multiple devices  running `decide` version 3.0 or later. It replaces [decide-host](https://github.com/melizalab/decide-host), which was a bit snazzier but becoming very difficult to maintain.
+
+This is a work in progress.
+
+This software is licensed for you to use under the Gnu Public License, version 3. See COPYING for details
+
+### Quick start
+
+1. Install the package from source: `python setup.py install`. Worth putting in a virtualenv.
+
+1. Add `decide_host` to your INSTALLED_APPS setting like this:
+
+```python
+INSTALLED_APPS = (
+    ...
+    'decide_host.apps.DecideHostConfig',
+)
+```
+
+You'll also need to add `rest_framework` and `django_filters`.
+
+2. Include the decide_host URLconf in your project urls.py like this::
+
+```python
+url(r'^decide_host/', include(decide_host.urls')),
+```
+
+3. Run `python manage.py migrate` to create the database tables.
+
+4. Start the development server and point your browser to http://127.0.0.1:8000/decide-host/api/
+   to view records and inspect the API.
