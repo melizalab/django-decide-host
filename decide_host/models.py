@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from django.contrib.postgres.fields import JSONField
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils import timezone
 from django.db import models
 
 # Create your models here.
@@ -84,6 +85,11 @@ class Subject(models.Model):
 
     def last_trial(self):
         return self.trial_set.first()
+
+    def n_trials_today(self):
+        today_start = timezone.localtime(timezone.now()).replace(hour=0, minute=0, second=0)
+        today_end = today_start.replace(hour=23, minute=59, second=59)
+        return self.trial_set.filter(time__gte=today_start, time__lte=today_end).count()
 
     def __str__(self):
         return self.name

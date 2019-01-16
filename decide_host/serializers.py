@@ -6,6 +6,7 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import smart_text
+from django.utils.timezone import make_aware
 from rest_framework import serializers
 from decide_host.models import Controller, Component, Event, Subject, Trial
 
@@ -25,10 +26,11 @@ class CreatableSlugRelatedField(serializers.SlugRelatedField):
 
 
 class MicroDateTimeField(serializers.DateTimeField):
+    """Class to handle floating point timestamps"""
 
     def to_internal_value(self, data):
         if isinstance(data, float):
-            return datetime.datetime.fromtimestamp(data)
+            return make_aware(datetime.datetime.fromtimestamp(data))
         else:
             return super(MicroDateTimeField, self).to_internal_value(data)
 
@@ -77,10 +79,11 @@ class ControllerSerializer(serializers.ModelSerializer):
 
 class SubjectSerializer(serializers.ModelSerializer):
     last_trial_time = serializers.DateTimeField(read_only=True, source="last_trial.time")
+    n_trials_today = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Subject
-        fields = ("name", "last_trial_time")
+        fields = ("name", "last_trial_time", "n_trials_today")
 
 
 class EventSerializer(JSONFlattenMixin, serializers.ModelSerializer):
