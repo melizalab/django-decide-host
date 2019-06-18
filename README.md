@@ -34,3 +34,5 @@ url(r'^decide_host/', include(decide_host.urls')),
    to view records and inspect the API.
 
 ### Importing trial data
+
+If you have trial data in jsonl files that you'd like you import into the database, you can do this very easily. From your project site, run `manage.py import_trials -n <name> -a <addr> trials.json`. You need to supply the name of the controller (addr) and the procedure (name). The import will not happen if there's a duplicate in the database, so no need to worry about this.

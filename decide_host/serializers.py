@@ -31,6 +31,8 @@ class MicroDateTimeField(serializers.DateTimeField):
     def to_internal_value(self, data):
         if isinstance(data, float):
             return make_aware(datetime.datetime.fromtimestamp(data))
+        if isinstance(data, int):
+            return make_aware(datetime.datetime.fromtimestamp(data * 1e-6))
         else:
             return super(MicroDateTimeField, self).to_internal_value(data)
 
