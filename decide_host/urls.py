@@ -5,6 +5,7 @@ from django.conf.urls import url
 from decide_host import views
 
 urlpatterns = [
+    url(r'^$', views.api_root, name='index'),
     url(r'^api/$', views.api_root, name='index'),
     url(r'^api/info/$', views.api_info, name='api-info'),
     url(r"^api/events/$", views.EventList.as_view(), name="event-list"),

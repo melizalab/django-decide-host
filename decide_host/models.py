@@ -66,6 +66,10 @@ class Controller(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ("name",)
+
+
 
 @python_2_unicode_compatible
 class Component(models.Model):
@@ -76,6 +80,9 @@ class Component(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ("name",)
 
 
 @python_2_unicode_compatible
@@ -93,3 +100,6 @@ class Subject(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ("name",)
