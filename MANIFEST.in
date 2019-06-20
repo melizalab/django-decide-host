@@ -1,0 +1,5 @@
+include README.md
+include COPYING
+include setup.cfg
+include setup.py
+include decide_host/management/commands/import_trials.py
