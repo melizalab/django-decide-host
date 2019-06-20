@@ -2,6 +2,7 @@
 # -*- mode: python -*-
 
 import ipaddress
+import logging
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -16,6 +17,7 @@ from decide_host import __version__, api_version
 from decide_host import models
 from decide_host import serializers
 
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def api_root(request, format=None):
