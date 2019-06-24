@@ -82,6 +82,7 @@ class TrialFilter(filters.FilterSet):
     addr = filters.CharFilter(field_name="addr__name", label="addr", lookup_expr="icontains")
     name = filters.CharFilter(field_name="name__name", label="name", lookup_expr="icontains")
     subject = filters.CharFilter(field_name="subject__name", label="subject", lookup_expr="icontains")
+    nocomment = filters.BooleanFilter(field_name="data__comment", label="nocomment", lookup_expr="isnull")
 
     class Meta:
         model = models.Trial
@@ -100,6 +101,28 @@ class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
 
 
 class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
+    """Records of trials and trial-related comments.
+
+    This endpoint returns a list of records from the database of trial records.
+    It is expected that users will use filter queries to restrict the number of
+    items to a reasonable subset. If a filter is not provided, the results will be paginated.
+
+    Basic filters include name (of the procedure), addr (of the controller), and
+    subject.
+
+    You can query on event time using either an exact value (`time`) a date
+    (`time__date`), or a range (`time__range`). Use ISO8601 strings for dates
+    and times, and when specifying a range, separate the beginning and end of
+    the range with a comma.
+
+    You can exclude comments with the query `nocomment=true`.
+
+    You can query on other fields of the record, but these need to be
+    prefaced by `data__`. For example, to restrict returned records to ones in
+    which `correct` was `True`, add the query `data__correct=True`.
+
+    """
+
     queryset = models.Trial.objects.all()
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
