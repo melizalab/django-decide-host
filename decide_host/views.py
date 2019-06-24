@@ -91,6 +91,15 @@ class TrialFilter(filters.FilterSet):
         }
 
 
+class FilterOrLinkHeaderPagination(LinkHeaderPagination):
+
+    def paginate_queryset(self, queryset, request, view=None):
+        if 'no_page' in request.query_params:
+            return None
+        else:
+            return super().paginate_queryset(queryset, request, view)
+
+
 class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
     queryset = models.Event.objects.all()
     serializer_class = serializers.EventSerializer
@@ -105,7 +114,8 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
 
     This endpoint returns a list of records from the database of trial records.
     It is expected that users will use filter queries to restrict the number of
-    items to a reasonable subset. If a filter is not provided, the results will be paginated.
+    items to a reasonable subset. Results are paginated unless `no_page` is
+    provided as a query parameter.
 
     Basic filters include name (of the procedure), addr (of the controller), and
     subject.
@@ -117,9 +127,10 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
 
     You can exclude comments with the query `nocomment=true`.
 
-    You can query on other fields of the record, but these need to be
-    prefaced by `data__`. For example, to restrict returned records to ones in
-    which `correct` was `True`, add the query `data__correct=True`.
+    You can query on other fields of the record, but these need to be prefaced
+    by `data__` due to the way they're stored in the database. For example, to
+    restrict returned records to ones in which `correct` was `True`, add the
+    query `data__correct=True`.
 
     """
 
@@ -127,7 +138,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = TrialFilter
-    pagination_class = LinkHeaderPagination
+    pagination_class = FilterOrLinkHeaderPagination
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
