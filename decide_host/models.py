@@ -3,14 +3,11 @@
 from __future__ import unicode_literals
 
 from django.contrib.postgres.fields import JSONField
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 from django.db import models
 
 # Create your models here.
 
-
-@python_2_unicode_compatible
 class Event(models.Model):
     """ An event is any state change in a connected controller """
     id = models.AutoField(primary_key=True)
@@ -31,7 +28,7 @@ class Event(models.Model):
         ordering = ("-time",)
 
 
-@python_2_unicode_compatible
+
 class Trial(models.Model):
     """ A trial is one set of events in an experimental paradigm """
     id = models.AutoField(primary_key=True)
@@ -55,7 +52,7 @@ class Trial(models.Model):
         ordering = ("-time",)
 
 
-@python_2_unicode_compatible
+
 class Controller(models.Model):
     """ Represents a controller connected to this host """
     name = models.SlugField(max_length=32, unique=True)
@@ -71,7 +68,7 @@ class Controller(models.Model):
 
 
 
-@python_2_unicode_compatible
+
 class Component(models.Model):
     """ Represents a component in a controller """
     # the main reason for having this as a separate model rather than a string
@@ -85,7 +82,7 @@ class Component(models.Model):
         ordering = ("name",)
 
 
-@python_2_unicode_compatible
+
 class Subject(models.Model):
     """ Represents an experimental subject """
     name = models.SlugField(max_length=128, unique=True)
