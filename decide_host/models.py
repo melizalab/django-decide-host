@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 from __future__ import unicode_literals
 
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 from django.db import models
 
@@ -55,6 +55,7 @@ class Trial(models.Model):
 
 class Controller(models.Model):
     """ Represents a controller connected to this host """
+    id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=32, unique=True)
 
     def last_event(self):
@@ -73,6 +74,7 @@ class Component(models.Model):
     """ Represents a component in a controller """
     # the main reason for having this as a separate model rather than a string
     # field is to reduce data size and enhance indexing
+    id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=32, unique=True)
 
     def __str__(self):
@@ -85,6 +87,7 @@ class Component(models.Model):
 
 class Subject(models.Model):
     """ Represents an experimental subject """
+    id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=128, unique=True)
 
     def last_trial(self):

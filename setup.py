@@ -3,8 +3,8 @@
 import os
 import sys
 from setuptools import setup
-if sys.hexversion < 0x02060000:
-    raise RuntimeError("Python 2.6 or higher required")
+if sys.hexversion < 0x03060000:
+    raise RuntimeError("Python 3.6 or higher required")
 
 from decide_host import __version__
 
