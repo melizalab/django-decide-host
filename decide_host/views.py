@@ -70,25 +70,30 @@ class DataFieldFilterMixin(object):
 class EventFilter(filters.FilterSet):
     addr = filters.CharFilter(field_name="addr__name", label="addr", lookup_expr="icontains")
     name = filters.CharFilter(field_name="name__name", label="name", lookup_expr="icontains")
+    date = filters.DateFromToRangeFilter(field_name="time")
+    datetime = filters.DateTimeFromToRangeFilter(field_name="time")
 
     class Meta:
         model = models.Event
         fields = {
-            'time': ['exact', 'date', 'range']
+            'time': ['exact', 'date']
         }
 
 
 class TrialFilter(filters.FilterSet):
     addr = filters.CharFilter(field_name="addr__name", label="addr", lookup_expr="icontains")
     name = filters.CharFilter(field_name="name__name", label="name", lookup_expr="icontains")
-    subject = filters.CharFilter(field_name="subject__name", label="subject", lookup_expr="icontains")
-    nocomment = filters.BooleanFilter(field_name="data__comment", label="nocomment", lookup_expr="isnull")
+    subject = filters.CharFilter(field_name="subject__name", label="subject",
+                                 lookup_expr="icontains")
+    nocomment = filters.BooleanFilter(field_name="data__comment", label="nocomment",
+                                      lookup_expr="isnull")
     date = filters.DateFromToRangeFilter(field_name="time")
+    datetime = filters.DateTimeFromToRangeFilter(field_name="time")
 
     class Meta:
         model = models.Trial
         fields = {
-            'time': ['exact', 'date', 'range']
+            'time': ['exact', 'date']
         }
 
 
@@ -114,24 +119,27 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     """Records of trials and trial-related comments.
 
     This endpoint returns a list of records from the database of trial records.
-    It is expected that users will use filter queries to restrict the number of
-    items to a reasonable subset. Results are paginated unless `no_page` is
-    provided as a query parameter.
+    Use query parameters to restrict the number of items to a reasonable subset.
 
-    Basic filters include name (of the procedure), addr (of the controller), and
-    subject.
+    Basic filters: `name` (of the procedure), `addr` (of the controller), and
+    `subject`.
 
-    You can query on event time using either an exact value (`time`) a date
-    (`time__date`), or a range (`time__range`). Use ISO8601 strings for dates
-    and times, and when specifying a range, separate the beginning and end of
-    the range with a comma.
+    Date-based filters: `time__date` for a specific date, `date_before` and
+    `date_after` to specify a range. Ranges are inclusive. Format dates as `YYYY-MM-DD`.
 
-    You can exclude comments with the query `nocomment=true`.
+    Time-based filters: `datetime_before` and `datetime_after` to specify a
+    range. Format datetimes as `YYYY-MM-DD hh:mm`
 
-    You can query on other fields of the record, but these need to be prefaced
+    Exclude comments with the query `nocomment=true`.
+
+    You can filter on other fields of the record, but these need to be prefaced
     by `data__` due to the way they're stored in the database. For example, to
     restrict returned records to ones in which `correct` was `True`, add the
     query `data__correct=True`.
+
+    Multiple queries produce a more restrictive filter.
+
+    Example: "?subject=P24&date_after=2022-02-01&date_before=2022-02-28"
 
     """
 
