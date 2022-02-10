@@ -83,6 +83,7 @@ class TrialFilter(filters.FilterSet):
     name = filters.CharFilter(field_name="name__name", label="name", lookup_expr="icontains")
     subject = filters.CharFilter(field_name="subject__name", label="subject", lookup_expr="icontains")
     nocomment = filters.BooleanFilter(field_name="data__comment", label="nocomment", lookup_expr="isnull")
+    date = filters.DateFromToRangeFilter(field_name="time")
 
     class Meta:
         model = models.Trial
