@@ -71,7 +71,6 @@ class EventFilter(filters.FilterSet):
     addr = filters.CharFilter(field_name="addr__name", label="addr", lookup_expr="icontains")
     name = filters.CharFilter(field_name="name__name", label="name", lookup_expr="icontains")
     date = filters.DateFromToRangeFilter(field_name="time")
-    datetime = filters.DateTimeFromToRangeFilter(field_name="time")
 
     class Meta:
         model = models.Event
@@ -88,22 +87,12 @@ class TrialFilter(filters.FilterSet):
     nocomment = filters.BooleanFilter(field_name="data__comment", label="nocomment",
                                       lookup_expr="isnull")
     date = filters.DateFromToRangeFilter(field_name="time")
-    datetime = filters.DateTimeFromToRangeFilter(field_name="time")
 
     class Meta:
         model = models.Trial
         fields = {
             'time': ['exact', 'date']
         }
-
-
-class FilterOrLinkHeaderPagination(LinkHeaderPagination):
-
-    def paginate_queryset(self, queryset, request, view=None):
-        if 'no_page' in request.query_params:
-            return None
-        else:
-            return super().paginate_queryset(queryset, request, view)
 
 
 class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
@@ -125,10 +114,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     `subject`.
 
     Date-based filters: `time__date` for a specific date, `date_before` and
-    `date_after` to specify a range. Ranges are inclusive. Format dates as `YYYY-MM-DD`.
-
-    Time-based filters: `datetime_before` and `datetime_after` to specify a
-    range. Format datetimes as `YYYY-MM-DD hh:mm`
+    `date_after` to specify a range. Ranges are exclusive. Format dates as `YYYY-MM-DD`.
 
     Exclude comments with the query `nocomment=true`.
 
@@ -147,7 +133,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = TrialFilter
-    pagination_class = FilterOrLinkHeaderPagination
+    pagination_class = LinkHeaderPagination
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
