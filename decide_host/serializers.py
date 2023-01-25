@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.timezone import make_aware
 from rest_framework import serializers
 from decide_host.models import Controller, Component, Event, Subject, Trial
@@ -20,7 +20,7 @@ class CreatableSlugRelatedField(serializers.SlugRelatedField):
         try:
             return self.get_queryset().get_or_create(**{self.slug_field: data})[0]
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', slug_name=self.slug_field, value=smart_text(data))
+            self.fail('does_not_exist', slug_name=self.slug_field, value=smart_str(data))
         except (TypeError, ValueError):
             self.fail('invalid')
 
