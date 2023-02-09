@@ -15,14 +15,15 @@ from decide_host.models import Controller, Component, Event, Subject, Trial
 
 
 class CreatableSlugRelatedField(serializers.SlugRelatedField):
-
     def to_internal_value(self, data):
         try:
             return self.get_queryset().get_or_create(**{self.slug_field: data})[0]
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', slug_name=self.slug_field, value=smart_str(data))
+            self.fail(
+                "does_not_exist", slug_name=self.slug_field, value=smart_str(data)
+            )
         except (TypeError, ValueError):
-            self.fail('invalid')
+            self.fail("invalid")
 
 
 class MicroDateTimeField(serializers.DateTimeField):
@@ -39,6 +40,7 @@ class MicroDateTimeField(serializers.DateTimeField):
 
 class JSONFlattenMixin(object):
     """Flatens the specified related objects in this representation"""
+
     def to_representation(self, obj):
         """Move fields from data to top-level"""
         try:
@@ -46,7 +48,9 @@ class JSONFlattenMixin(object):
         except AttributeError:
             raise AssertionError(
                 'Class {serializer_class} missing "Meta.flatten" attribute'.format(
-                    serializer_class=self.__class__.__name__))
+                    serializer_class=self.__class__.__name__
+                )
+            )
         repr = super(JSONFlattenMixin, self).to_representation(obj)
         data = repr.pop(flatten_field)
         for key in data:
@@ -59,7 +63,9 @@ class JSONFlattenMixin(object):
         except AttributeError:
             raise AssertionError(
                 'Class {serializer_class} missing "Meta.flatten" attribute'.format(
-                    serializer_class=self.__class__.__name__))
+                    serializer_class=self.__class__.__name__
+                )
+            )
         dd = {key: data[key] for key in data if key not in self.Meta.fields}
         for key in dd:
             data.pop(key)
@@ -72,7 +78,9 @@ class JSONFlattenMixin(object):
 
 
 class ControllerSerializer(serializers.ModelSerializer):
-    last_event_time = serializers.DateTimeField(read_only=True, source="last_event.time")
+    last_event_time = serializers.DateTimeField(
+        read_only=True, source="last_event.time"
+    )
 
     class Meta:
         model = Controller
@@ -80,7 +88,9 @@ class ControllerSerializer(serializers.ModelSerializer):
 
 
 class SubjectSerializer(serializers.ModelSerializer):
-    last_trial_time = serializers.DateTimeField(read_only=True, source="last_trial.time")
+    last_trial_time = serializers.DateTimeField(
+        read_only=True, source="last_trial.time"
+    )
     n_trials_today = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -89,10 +99,12 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(JSONFlattenMixin, serializers.ModelSerializer):
-    addr = CreatableSlugRelatedField(queryset=Controller.objects.all(),
-                                     slug_field="name")
-    name = CreatableSlugRelatedField(queryset=Component.objects.all(),
-                                     slug_field="name")
+    addr = CreatableSlugRelatedField(
+        queryset=Controller.objects.all(), slug_field="name"
+    )
+    name = CreatableSlugRelatedField(
+        queryset=Component.objects.all(), slug_field="name"
+    )
     time = MicroDateTimeField()
     data = serializers.JSONField(default=dict)
 
@@ -103,12 +115,15 @@ class EventSerializer(JSONFlattenMixin, serializers.ModelSerializer):
 
 
 class TrialSerializer(JSONFlattenMixin, serializers.ModelSerializer):
-    addr = CreatableSlugRelatedField(queryset=Controller.objects.all(),
-                                     slug_field="name")
-    name = CreatableSlugRelatedField(queryset=Component.objects.all(),
-                                     slug_field="name")
-    subject = CreatableSlugRelatedField(queryset=Subject.objects.all(),
-                                        slug_field="name")
+    addr = CreatableSlugRelatedField(
+        queryset=Controller.objects.all(), slug_field="name"
+    )
+    name = CreatableSlugRelatedField(
+        queryset=Component.objects.all(), slug_field="name"
+    )
+    subject = CreatableSlugRelatedField(
+        queryset=Subject.objects.all(), slug_field="name"
+    )
     time = MicroDateTimeField()
     data = serializers.JSONField(default=dict)
 
