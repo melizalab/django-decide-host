@@ -111,7 +111,7 @@ class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
     queryset = models.Event.objects.all()
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = EventFilter
+    filterset_class = EventFilter
     pagination_class = LinkHeaderPagination
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
@@ -144,7 +144,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     queryset = models.Trial.objects.all()
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = TrialFilter
+    filterset_class = TrialFilter
     pagination_class = LinkHeaderPagination
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
@@ -163,7 +163,7 @@ class ControllerDetail(generics.RetrieveAPIView):
 class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = EventFilter
+    filterset_class = EventFilter
     pagination_class = LinkHeaderPagination
 
     def get_object(self):
@@ -188,7 +188,7 @@ class SubjectDetail(generics.RetrieveAPIView):
 class SubjectTrialList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = TrialFilter
+    filterset_class = TrialFilter
     pagination_class = LinkHeaderPagination
 
     def get_object(self):
