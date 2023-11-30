@@ -10,14 +10,18 @@ from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
+from drf_link_header_pagination import LinkHeaderCursorPagination
 from django_filters import rest_framework as filters
-from drf_link_header_pagination import LinkHeaderPagination
 
 from decide_host import __version__, api_version
 from decide_host import models
 from decide_host import serializers
 
 logger = logging.getLogger(__name__)
+
+
+class LinkHeaderCursorPaginationByTimestamp(LinkHeaderCursorPagination):
+    ordering = "-time"
 
 
 @api_view(["GET"])
@@ -75,10 +79,10 @@ class DataFieldFilterMixin(object):
 
 class EventFilter(filters.FilterSet):
     addr = filters.CharFilter(
-        field_name="addr__name", label="addr", lookup_expr="icontains"
+        field_name="addr__name", label="addr", lookup_expr="exact"
     )
     name = filters.CharFilter(
-        field_name="name__name", label="name", lookup_expr="icontains"
+        field_name="name__name", label="name", lookup_expr="exact"
     )
     date = filters.DateFromToRangeFilter(field_name="time")
 
@@ -89,13 +93,13 @@ class EventFilter(filters.FilterSet):
 
 class TrialFilter(filters.FilterSet):
     addr = filters.CharFilter(
-        field_name="addr__name", label="addr", lookup_expr="icontains"
+        field_name="addr__name", label="addr", lookup_expr="exact"
     )
     name = filters.CharFilter(
-        field_name="name__name", label="name", lookup_expr="icontains"
+        field_name="name__name", label="name", lookup_expr="exact"
     )
     subject = filters.CharFilter(
-        field_name="subject__name", label="subject", lookup_expr="icontains"
+        field_name="subject__name", label="subject", lookup_expr="exact"
     )
     nocomment = filters.BooleanFilter(
         field_name="data__comment", label="nocomment", lookup_expr="isnull"
@@ -112,7 +116,7 @@ class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EventFilter
-    pagination_class = LinkHeaderPagination
+    pagination_class = LinkHeaderCursorPaginationByTimestamp
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
@@ -145,7 +149,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TrialFilter
-    pagination_class = LinkHeaderPagination
+    pagination_class = LinkHeaderCursorPaginationByTimestamp
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
@@ -157,14 +161,14 @@ class ControllerList(generics.ListAPIView):
 class ControllerDetail(generics.RetrieveAPIView):
     lookup_field = "name"
     queryset = models.Controller.objects.all()
-    serializer_class = serializers.ControllerSerializer
+    serializer_class = serializers.ControllerDetailSerializer
 
 
 class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
+    pagination_class = LinkHeaderCursorPaginationByTimestamp
     filterset_class = EventFilter
-    pagination_class = LinkHeaderPagination
 
     def get_object(self):
         return get_object_or_404(models.Controller, name=self.kwargs["addr"])
@@ -182,14 +186,14 @@ class SubjectList(generics.ListAPIView):
 class SubjectDetail(generics.RetrieveAPIView):
     lookup_field = "name"
     queryset = models.Subject.objects.all()
-    serializer_class = serializers.SubjectSerializer
+    serializer_class = serializers.SubjectDetailSerializer
 
 
 class SubjectTrialList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
+    pagination_class = LinkHeaderCursorPaginationByTimestamp
     filterset_class = TrialFilter
-    pagination_class = LinkHeaderPagination
 
     def get_object(self):
         return get_object_or_404(models.Subject, name=self.kwargs["subject"])

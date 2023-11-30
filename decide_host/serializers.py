@@ -78,6 +78,12 @@ class JSONFlattenMixin(object):
 
 
 class ControllerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Controller
+        fields = ("name",)
+
+
+class ControllerDetailSerializer(serializers.ModelSerializer):
     last_event_time = serializers.DateTimeField(
         read_only=True, source="last_event.time"
     )
@@ -88,6 +94,12 @@ class ControllerSerializer(serializers.ModelSerializer):
 
 
 class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ("name",)
+
+
+class SubjectDetailSerializer(serializers.ModelSerializer):
     last_trial_time = serializers.DateTimeField(
         read_only=True, source="last_trial.time"
     )
