@@ -21,7 +21,7 @@ class Event(models.Model):
     name = models.ForeignKey(
         "Component", on_delete=models.PROTECT, help_text="the name of the component"
     )
-    time = models.DateTimeField()
+    time = models.DateTimeField(db_index=True)
     data = JSONField()
 
     def __str__(self):
@@ -29,6 +29,7 @@ class Event(models.Model):
 
     class Meta:
         unique_together = ("addr", "name", "time")
+        indexes = [models.Index(fields=["addr", "-time"], name="addr_time_desc_idx")]
         ordering = ("-time",)
 
 
@@ -47,14 +48,17 @@ class Trial(models.Model):
     subject = models.ForeignKey(
         "Subject", on_delete=models.PROTECT, help_text="the experimental subject"
     )
-    time = models.DateTimeField()
+    time = models.DateTimeField(db_index=True)
     data = JSONField()
 
     def __str__(self):
         return "%s:%s @ %s" % (self.addr, self.subject, self.time.isoformat())
 
     class Meta:
-        unique_together = ("addr", "name", "subject", "time")
+        unique_together = ("name", "subject", "time")
+        indexes = [
+            models.Index(fields=["subject", "-time"], name="subject_time_desc_idx")
+        ]
         ordering = ("-time",)
 
 
@@ -93,7 +97,7 @@ class Subject(models.Model):
     """Represents an experimental subject"""
 
     id = models.AutoField(primary_key=True)
-    name = models.SlugField(max_length=128, unique=True)
+    name = models.SlugField(max_length=36, unique=True)
 
     def last_trial(self):
         return self.trial_set.first()
