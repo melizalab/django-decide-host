@@ -6,7 +6,15 @@ from django.db.models import JSONField
 from django.utils import timezone
 from django.db import models
 
-# Create your models here.
+
+class EventManagerWithRelated(models.Manager):
+    def with_names(self):
+        return self.select_related("addr", "name")
+
+
+class TrialManagerWithRelated(models.Manager):
+    def with_names(self):
+        return self.select_related("addr", "subject", "name")
 
 
 class Event(models.Model):
@@ -23,6 +31,7 @@ class Event(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
+    objects = EventManagerWithRelated()
 
     def __str__(self):
         return "%s:%s @ %s" % (self.addr, self.name, self.time.isoformat())
@@ -50,6 +59,7 @@ class Trial(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
+    objects = TrialManagerWithRelated()
 
     def __str__(self):
         return "%s:%s @ %s" % (self.addr, self.subject, self.time.isoformat())

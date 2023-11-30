@@ -112,7 +112,7 @@ class TrialFilter(filters.FilterSet):
 
 
 class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
-    queryset = models.Event.objects.all()
+    queryset = models.Event.objects.with_names()
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EventFilter
@@ -145,7 +145,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
 
     """
 
-    queryset = models.Trial.objects.all()
+    queryset = models.Trial.objects.with_names()
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TrialFilter
@@ -175,7 +175,7 @@ class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
 
     def get_queryset(self):
         addr = self.get_object()
-        return addr.event_set.all()
+        return addr.event_set.with_names()
 
 
 class SubjectList(generics.ListAPIView):
@@ -200,4 +200,4 @@ class SubjectTrialList(DataFieldFilterMixin, generics.ListAPIView):
 
     def get_queryset(self):
         subj = self.get_object()
-        return subj.trial_set.all()
+        return subj.trial_set.with_names()
