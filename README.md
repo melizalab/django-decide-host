@@ -35,4 +35,8 @@ url(r'^decide_host/', include(decide_host.urls')),
 
 ### Importing trial data
 
-If you have trial data in jsonl files that you'd like you import into the database, you can do this very easily. From your project site, run `manage.py import_trials -n <name> -a <addr> trials.json`. You need to supply the name of the controller (addr) and the procedure (name). The import will not happen if there's a duplicate in the database, so no need to worry about this.
+If you have trial data in jsonl files that you'd like you import into the database, you can do this very easily. From your project site, run `manage.py import_trials -n <name> -a <addr> trials.jsonl`. You need to supply the name of the controller (addr) and the procedure (name). The import will not happen if there's a duplicate in the database, so no need to worry about this.
+
+### Combining duplicate subjects
+
+Subject names are set with user input, so there may be multiple records in the database that correspond to the same subject. To combine these records, run `manage.py merge_subjects <to_keep> <to_combine>`. Multiple names can be give for `<to_combine>`. It's easy to mess the database up badly doing this so be sure to take a snapshot!
