@@ -81,10 +81,10 @@ class DataFieldFilterMixin(object):
 
 class EventFilter(filters.FilterSet):
     addr = filters.CharFilter(
-        field_name="addr__name", label="addr", lookup_expr="exact"
+        field_name="addr__name", label="addr", lookup_expr="iexact"
     )
     name = filters.CharFilter(
-        field_name="name__name", label="name", lookup_expr="exact"
+        field_name="name__name", label="name", lookup_expr="iexact"
     )
     date = filters.DateFromToRangeFilter(field_name="time")
 
@@ -95,13 +95,13 @@ class EventFilter(filters.FilterSet):
 
 class TrialFilter(filters.FilterSet):
     addr = filters.CharFilter(
-        field_name="addr__name", label="addr", lookup_expr="exact"
+        field_name="addr__name", label="addr", lookup_expr="iexact"
     )
     name = filters.CharFilter(
-        field_name="name__name", label="name", lookup_expr="exact"
+        field_name="name__name", label="name", lookup_expr="iexact"
     )
     subject = filters.CharFilter(
-        field_name="subject__name", label="subject", lookup_expr="exact"
+        field_name="subject__name", label="subject", lookup_expr="iexact"
     )
     nocomment = filters.BooleanFilter(
         field_name="data__comment", label="nocomment", lookup_expr="isnull"
