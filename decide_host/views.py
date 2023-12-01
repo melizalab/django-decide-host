@@ -24,17 +24,19 @@ class LinkHeaderCursorPaginationByTimestamp(LinkHeaderCursorPagination):
     ordering = "-time"
 
 
-@api_view(["GET"])
+@api_view(["HEAD", "GET"])
 def api_root(request, format=None):
-    return Response(
-        {
-            "info": reverse("api-info", request=request, format=format),
-            "events": reverse("event-list", request=request, format=format),
-            "trials": reverse("trial-list", request=request, format=format),
-            "controllers": reverse("controller-list", request=request, format=format),
-            "subjects": reverse("subject-list", request=request, format=format),
-        }
-    )
+    urls = {
+        "info": reverse("api-info", request=request, format=format),
+        "events": reverse("event-list", request=request, format=format),
+        "trials": reverse("trial-list", request=request, format=format),
+        "controllers": reverse("controller-list", request=request, format=format),
+        "subjects": reverse("subject-list", request=request, format=format),
+    }
+    headers = {
+        "Link": ", ".join(f'<{uri}>; rel="{name}"' for name, uri in urls.items())
+    }
+    return Response(urls, headers=headers)
 
 
 @api_view(["GET"])
