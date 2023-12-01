@@ -71,7 +71,7 @@ class DataFieldFilterMixin(object):
     """Provides filtering based on components of the data JSONField"""
 
     def filter_queryset(self, queryset):
-        qs = super(DataFieldFilterMixin, self).filter_queryset(queryset)
+        qs = super().filter_queryset(queryset)
         # this could be a little dangerous b/c we're letting the user design queries
         mq = {k: v for k, v in self.request.GET.items() if k.startswith("data__")}
         return qs.filter(**mq)
@@ -163,6 +163,13 @@ class ControllerDetail(generics.RetrieveAPIView):
     queryset = models.Controller.objects.all()
     serializer_class = serializers.ControllerDetailSerializer
 
+    def retrieve(self, request, **kwargs):
+        response = super().retrieve(request, **kwargs)
+        # add link to trials in header
+        uri = reverse("controller-event-list", args=[kwargs["name"]], request=request)
+        response["Link"] = f'<{uri}>; rel="events"'
+        return response
+
 
 class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.EventSerializer
@@ -187,6 +194,13 @@ class SubjectDetail(generics.RetrieveAPIView):
     lookup_field = "name"
     queryset = models.Subject.objects.all()
     serializer_class = serializers.SubjectDetailSerializer
+
+    def retrieve(self, request, **kwargs):
+        response = super().retrieve(request, **kwargs)
+        # add link to trials in header
+        uri = reverse("subject-trial-list", args=[kwargs["name"]], request=request)
+        response["Link"] = f'<{uri}>; rel="trials"'
+        return response
 
 
 class SubjectTrialList(DataFieldFilterMixin, generics.ListAPIView):
