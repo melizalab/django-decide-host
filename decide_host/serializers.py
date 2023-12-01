@@ -58,6 +58,7 @@ class JSONFlattenMixin(object):
         return repr
 
     def to_internal_value(self, data):
+        """Nest fields not in Meta.fields"""
         try:
             flatten_field = self.Meta.flatten
         except AttributeError:
@@ -66,14 +67,13 @@ class JSONFlattenMixin(object):
                     serializer_class=self.__class__.__name__
                 )
             )
-        dd = {key: data[key] for key in data if key not in self.Meta.fields}
-        for key in dd:
-            data.pop(key)
-        internal = super().to_internal_value(data)
+        nested = {key: data[key] for key in data if key not in self.Meta.fields}
+        not_nested = {key: data[key] for key in data if key in self.Meta.fields}
+        internal = super().to_internal_value(not_nested)
         try:
-            internal[flatten_field].update(dd)
+            internal[flatten_field].update(nested)
         except KeyError:
-            internal[flatten_field] = dd
+            internal[flatten_field] = nested
         return internal
 
 
