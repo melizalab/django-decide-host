@@ -156,14 +156,14 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
 
 
 class ControllerList(generics.ListAPIView):
-    queryset = models.Controller.objects.all()
+    queryset = models.Controller.objects.with_counts().order_by("-last_event_time")
     serializer_class = serializers.ControllerSerializer
 
 
 class ControllerDetail(generics.RetrieveAPIView):
     lookup_field = "name"
-    queryset = models.Controller.objects.all()
-    serializer_class = serializers.ControllerDetailSerializer
+    queryset = models.Controller.objects.with_counts()
+    serializer_class = serializers.ControllerSerializer
 
     def retrieve(self, request, **kwargs):
         response = super().retrieve(request, **kwargs)
@@ -188,14 +188,14 @@ class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
 
 
 class SubjectList(generics.ListAPIView):
-    queryset = models.Subject.objects.all()
+    queryset = models.Subject.objects.with_counts().order_by("-last_trial_time")
     serializer_class = serializers.SubjectSerializer
 
 
 class SubjectDetail(generics.RetrieveAPIView):
     lookup_field = "name"
-    queryset = models.Subject.objects.all()
-    serializer_class = serializers.SubjectDetailSerializer
+    queryset = models.Subject.objects.with_counts()
+    serializer_class = serializers.SubjectSerializer
 
     def retrieve(self, request, **kwargs):
         response = super().retrieve(request, **kwargs)

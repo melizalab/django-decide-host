@@ -2,19 +2,14 @@
 # -*- mode: python -*-
 from __future__ import unicode_literals
 
-from django.db.models import JSONField
+from django.db.models import JSONField, Count, Max, Q
 from django.utils import timezone
 from django.db import models
 
 
-class EventManagerWithRelated(models.Manager):
+class EventManager(models.Manager):
     def with_names(self):
         return self.select_related("addr", "name")
-
-
-class TrialManagerWithRelated(models.Manager):
-    def with_names(self):
-        return self.select_related("addr", "subject", "name")
 
 
 class Event(models.Model):
@@ -31,7 +26,7 @@ class Event(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
-    objects = EventManagerWithRelated()
+    objects = EventManager()
 
     def __str__(self):
         return "%s:%s @ %s" % (self.addr, self.name, self.time.isoformat())
@@ -40,6 +35,11 @@ class Event(models.Model):
         unique_together = ("addr", "name", "time")
         indexes = [models.Index(fields=["addr", "-time"], name="addr_time_desc_idx")]
         ordering = ("-time",)
+
+
+class TrialManager(models.Manager):
+    def with_names(self):
+        return self.select_related("addr", "subject", "name")
 
 
 class Trial(models.Model):
@@ -59,7 +59,7 @@ class Trial(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
-    objects = TrialManagerWithRelated()
+    objects = TrialManager()
 
     def __str__(self):
         return "%s:%s @ %s" % (self.addr, self.subject, self.time.isoformat())
@@ -72,14 +72,19 @@ class Trial(models.Model):
         ordering = ("-time",)
 
 
+class ControllerManager(models.Manager):
+    def with_counts(self):
+        return self.annotate(
+            n_events=Count("event"), last_event_time=Max("event__time")
+        )
+
+
 class Controller(models.Model):
     """Represents a controller connected to this host"""
 
     id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=32, unique=True)
-
-    def last_event(self):
-        return self.event_set.first()
+    objects = ControllerManager()
 
     def __str__(self):
         return self.name
@@ -103,14 +108,24 @@ class Component(models.Model):
         ordering = ("name",)
 
 
+class SubjectManager(models.Manager):
+    def with_counts(self):
+        today_start = timezone.localtime(timezone.now()).replace(
+            hour=0, minute=0, second=0
+        )
+        return self.annotate(
+            n_trials=Count("trial"),
+            last_trial_time=Max("trial__time"),
+            n_trials_today=Count("trial", filter=Q(trial__time__gte=today_start)),
+        )
+
+
 class Subject(models.Model):
     """Represents an experimental subject"""
 
     id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=36, unique=True)
-
-    def last_trial(self):
-        return self.trial_set.first()
+    objects = SubjectManager()
 
     def n_trials_today(self):
         today_start = timezone.localtime(timezone.now()).replace(
