@@ -132,5 +132,5 @@ class TrialSerializer(JSONFlattenMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Trial
-        fields = ("addr", "name", "subject", "time", "data")
+        fields = ("id", "addr", "name", "subject", "time", "data")
         flatten = "data"
