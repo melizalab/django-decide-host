@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 # -*- mode: python -*-
-from __future__ import unicode_literals
 
 import datetime
 
@@ -8,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import smart_str
 from django.utils.timezone import make_aware
 from rest_framework import serializers
-from decide_host.models import Controller, Component, Event, Subject, Trial
+
+from decide_host.models import Component, Controller, Event, Subject, Trial
 
 # ideally, I'd like to flatten the JSON so that all the data fields are at the
 # top level. This simplifies the representation
@@ -35,10 +34,10 @@ class MicroDateTimeField(serializers.DateTimeField):
         if isinstance(data, int):
             return make_aware(datetime.datetime.fromtimestamp(data * 1e-6))
         else:
-            return super(MicroDateTimeField, self).to_internal_value(data)
+            return super().to_internal_value(data)
 
 
-class JSONFlattenMixin(object):
+class JSONFlattenMixin:
     """Flatens the specified related objects in this representation"""
 
     def to_representation(self, obj):
@@ -47,11 +46,9 @@ class JSONFlattenMixin(object):
             flatten_field = self.Meta.flatten
         except AttributeError:
             raise AssertionError(
-                'Class {serializer_class} missing "Meta.flatten" attribute'.format(
-                    serializer_class=self.__class__.__name__
-                )
-            )
-        repr = super(JSONFlattenMixin, self).to_representation(obj)
+                f'Class {self.__class__.__name__} missing "Meta.flatten" attribute'
+            ) from None
+        repr = super().to_representation(obj)
         data = repr.pop(flatten_field)
         for key in data:
             repr[key] = data[key]
@@ -63,10 +60,8 @@ class JSONFlattenMixin(object):
             flatten_field = self.Meta.flatten
         except AttributeError:
             raise AssertionError(
-                'Class {serializer_class} missing "Meta.flatten" attribute'.format(
-                    serializer_class=self.__class__.__name__
-                )
-            )
+                f'Class {self.__class__.__name__} missing "Meta.flatten" attribute'
+            ) from None
         nested = {key: data[key] for key in data if key not in self.Meta.fields}
         not_nested = {key: data[key] for key in data if key in self.Meta.fields}
         internal = super().to_internal_value(not_nested)

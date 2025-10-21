@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # -*- mode: python -*-
 
 import ipaddress
@@ -6,16 +5,14 @@ import logging
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status, permissions
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework.reverse import reverse
-from drf_link_header_pagination import LinkHeaderPagination
 from django_filters import rest_framework as filters
+from drf_link_header_pagination import LinkHeaderPagination
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from decide_host import __version__, api_version
-from decide_host import models
-from decide_host import serializers
+from decide_host import __version__, api_version, models, serializers
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +68,7 @@ class IsAuthorizedSubnetOrReadOnly(permissions.BasePermission):
             return False
 
 
-class DataFieldFilterMixin(object):
+class DataFieldFilterMixin:
     """Provides filtering based on components of the data JSONField"""
 
     def filter_queryset(self, queryset):

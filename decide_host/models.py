@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # -*- mode: python -*-
-from __future__ import unicode_literals
 
-from django.db.models import JSONField, Count, Max, Q
-from django.utils import timezone
 from django.db import models
+from django.db.models import Count, JSONField, Max, Q
+from django.utils import timezone
 
 
 class EventManager(models.Manager):
@@ -29,7 +27,7 @@ class Event(models.Model):
     objects = EventManager()
 
     def __str__(self):
-        return "%s:%s @ %s" % (self.addr, self.name, self.time.isoformat())
+        return f"{self.addr}:{self.name} @ {self.time.isoformat()}"
 
     class Meta:
         unique_together = ("addr", "name", "time")
@@ -62,7 +60,7 @@ class Trial(models.Model):
     objects = TrialManager()
 
     def __str__(self):
-        return "%s:%s @ %s" % (self.addr, self.subject, self.time.isoformat())
+        return f"{self.addr}:{self.subject} @ {self.time.isoformat()}"
 
     class Meta:
         unique_together = ("name", "subject", "time")

@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 # -*- mode: python -*-
 """Combine duplicate subject objects using the Django ORM"""
 
-from django.core.management.base import BaseCommand
-from decide_host.models import Trial, Subject
 
-import json
+from django.core.management.base import BaseCommand
+
+from decide_host.models import Subject
 
 
 class Command(BaseCommand):

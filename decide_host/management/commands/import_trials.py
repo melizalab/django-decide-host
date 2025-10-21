@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 # -*- mode: python -*-
 """Import line-delimited records into trial objects using the Django ORM"""
 
-from django.core.management.base import BaseCommand, CommandError
-from decide_host.models import Trial
-from decide_host.serializers import TrialSerializer
-
 import json
+
+from django.core.management.base import BaseCommand
+
+from decide_host.serializers import TrialSerializer
 
 
 class Command(BaseCommand):
@@ -23,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for path in options["files"]:
-            with open(path, "rU") as fp:
+            with open(path) as fp:
                 n = 0
                 for i, line in enumerate(fp):
                     record = json.loads(line.strip())
@@ -35,6 +34,6 @@ class Command(BaseCommand):
                         serializer.save()
                     else:
                         self.stdout.write(
-                            "%s, record %d invalid: %s" % (path, i, serializer.errors)
+                            f"{path}, record {i} invalid: {serializer.errors}"
                         )
-                self.stdout.write("%s: imported %d record(s)" % (path, n))
+                self.stdout.write(f"{path}: imported {n} record(s)")
