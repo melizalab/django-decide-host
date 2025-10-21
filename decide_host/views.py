@@ -10,7 +10,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
-from drf_link_header_pagination import LinkHeaderCursorPagination
+from drf_link_header_pagination import LinkHeaderPagination
 from django_filters import rest_framework as filters
 
 from decide_host import __version__, api_version
@@ -20,18 +20,20 @@ from decide_host import serializers
 logger = logging.getLogger(__name__)
 
 
-class LinkHeaderCursorPaginationByTimestamp(LinkHeaderCursorPagination):
+class LinkHeaderPaginationByTimestamp(LinkHeaderPagination):
     ordering = "-time"
 
 
 @api_view(["HEAD", "GET"])
 def api_root(request, format=None):
     urls = {
-        "info": reverse("api-info", request=request, format=format),
-        "events": reverse("event-list", request=request, format=format),
-        "trials": reverse("trial-list", request=request, format=format),
-        "controllers": reverse("controller-list", request=request, format=format),
-        "subjects": reverse("subject-list", request=request, format=format),
+        "info": reverse("decide:api-info", request=request, format=format),
+        "events": reverse("decide:event-list", request=request, format=format),
+        "trials": reverse("decide:trial-list", request=request, format=format),
+        "controllers": reverse(
+            "decide:controller-list", request=request, format=format
+        ),
+        "subjects": reverse("decide:subject-list", request=request, format=format),
     }
     headers = {
         "Link": ", ".join(f'<{uri}>; rel="{name}"' for name, uri in urls.items())
@@ -118,7 +120,7 @@ class EventList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EventFilter
-    pagination_class = LinkHeaderCursorPaginationByTimestamp
+    pagination_class = LinkHeaderPaginationByTimestamp
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
@@ -151,7 +153,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TrialFilter
-    pagination_class = LinkHeaderCursorPaginationByTimestamp
+    pagination_class = LinkHeaderPaginationByTimestamp
     permission_classes = (IsAuthorizedSubnetOrReadOnly,)
 
 
@@ -168,7 +170,9 @@ class ControllerDetail(generics.RetrieveAPIView):
     def retrieve(self, request, **kwargs):
         response = super().retrieve(request, **kwargs)
         # add link to trials in header
-        uri = reverse("controller-event-list", args=[kwargs["name"]], request=request)
+        uri = reverse(
+            "decide:controller-event-list", args=[kwargs["name"]], request=request
+        )
         response["Link"] = f'<{uri}>; rel="events"'
         return response
 
@@ -176,7 +180,7 @@ class ControllerDetail(generics.RetrieveAPIView):
 class ControllerEventList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.EventSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    pagination_class = LinkHeaderCursorPaginationByTimestamp
+    pagination_class = LinkHeaderPaginationByTimestamp
     filterset_class = EventFilter
 
     def get_object(self):
@@ -200,7 +204,9 @@ class SubjectDetail(generics.RetrieveAPIView):
     def retrieve(self, request, **kwargs):
         response = super().retrieve(request, **kwargs)
         # add link to trials in header
-        uri = reverse("subject-trial-list", args=[kwargs["name"]], request=request)
+        uri = reverse(
+            "decide:subject-trial-list", args=[kwargs["name"]], request=request
+        )
         response["Link"] = f'<{uri}>; rel="trials"'
         return response
 
@@ -208,7 +214,7 @@ class SubjectDetail(generics.RetrieveAPIView):
 class SubjectTrialList(DataFieldFilterMixin, generics.ListAPIView):
     serializer_class = serializers.TrialSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    pagination_class = LinkHeaderCursorPaginationByTimestamp
+    pagination_class = LinkHeaderPaginationByTimestamp
     filterset_class = TrialFilter
 
     def get_object(self):

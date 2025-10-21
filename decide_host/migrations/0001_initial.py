@@ -6,61 +6,118 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Component',
+            name="Component",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=32, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=32, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Controller',
+            name="Controller",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=32, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=32, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Event',
+            name="Event",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('time', models.DateTimeField()),
-                ('data', django.contrib.postgres.fields.jsonb.JSONField()),
-                ('addr', models.ForeignKey(help_text='the controller that generated the event', on_delete=django.db.models.deletion.PROTECT, to='decide_host.Controller')),
-                ('name', models.ForeignKey(help_text='the name of the component', on_delete=django.db.models.deletion.PROTECT, to='decide_host.Component')),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("time", models.DateTimeField()),
+                ("data", django.contrib.postgres.fields.jsonb.JSONField()),
+                (
+                    "addr",
+                    models.ForeignKey(
+                        help_text="the controller that generated the event",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="decide_host.Controller",
+                    ),
+                ),
+                (
+                    "name",
+                    models.ForeignKey(
+                        help_text="the name of the component",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="decide_host.Component",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Subject',
+            name="Subject",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=128, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Trial',
+            name="Trial",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('time', models.DateTimeField()),
-                ('data', django.contrib.postgres.fields.jsonb.JSONField()),
-                ('addr', models.ForeignKey(help_text='the controller for the trial', on_delete=django.db.models.deletion.PROTECT, to='decide_host.Controller')),
-                ('name', models.ForeignKey(help_text='the experiment paradigm (e.g., shape)', on_delete=django.db.models.deletion.PROTECT, to='decide_host.Component')),
-                ('subject', models.ForeignKey(help_text='the experimental subject', on_delete=django.db.models.deletion.PROTECT, to='decide_host.Subject')),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("time", models.DateTimeField()),
+                ("data", django.contrib.postgres.fields.jsonb.JSONField()),
+                (
+                    "addr",
+                    models.ForeignKey(
+                        help_text="the controller for the trial",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="decide_host.Controller",
+                    ),
+                ),
+                (
+                    "name",
+                    models.ForeignKey(
+                        help_text="the experiment paradigm (e.g., shape)",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="decide_host.Component",
+                    ),
+                ),
+                (
+                    "subject",
+                    models.ForeignKey(
+                        help_text="the experimental subject",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="decide_host.Subject",
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='trial',
-            unique_together={('addr', 'name', 'subject', 'time')},
+            name="trial",
+            unique_together={("addr", "name", "subject", "time")},
         ),
         migrations.AlterUniqueTogether(
-            name='event',
-            unique_together={('addr', 'name', 'time')},
+            name="event",
+            unique_together={("addr", "name", "time")},
         ),
     ]

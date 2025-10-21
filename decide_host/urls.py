@@ -4,6 +4,7 @@ from django.urls import re_path
 
 from decide_host import views
 
+app_name = "decide"
 urlpatterns = [
     re_path(r"^$", views.api_root, name="index"),
     re_path(r"^api/$", views.api_root, name="index"),
