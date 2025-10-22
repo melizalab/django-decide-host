@@ -48,7 +48,7 @@ Quick start
        'decide_host',
    )
 
-2. Include the decide_host URLconf in your project urls.py like this::
+2. Include the decide_host URLconf in your project urls.py like this:
 
 .. code:: python
 
