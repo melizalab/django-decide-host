@@ -5,7 +5,7 @@ from django.db.models import Count, JSONField, Max, Q
 from django.utils import timezone
 
 
-class EventManager(models.Manager):
+class EventQuerySet(models.QuerySet):
     def with_names(self):
         return self.select_related("addr", "name")
 
@@ -24,7 +24,7 @@ class Event(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
-    objects = EventManager()
+    objects = EventQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.addr}:{self.name} @ {self.time.isoformat()}"
@@ -35,7 +35,7 @@ class Event(models.Model):
         ordering = ("-time",)
 
 
-class TrialManager(models.Manager):
+class TrialQuerySet(models.QuerySet):
     def with_names(self):
         return self.select_related("addr", "subject", "name")
 
@@ -57,7 +57,7 @@ class Trial(models.Model):
     )
     time = models.DateTimeField(db_index=True)
     data = JSONField()
-    objects = TrialManager()
+    objects = TrialQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.addr}:{self.subject} @ {self.time.isoformat()}"
@@ -70,7 +70,7 @@ class Trial(models.Model):
         ordering = ("-time",)
 
 
-class ControllerManager(models.Manager):
+class ControllerQuerySet(models.QuerySet):
     def with_counts(self):
         return self.annotate(
             n_events=Count("event"), last_event_time=Max("event__time")
@@ -82,7 +82,7 @@ class Controller(models.Model):
 
     id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=32, unique=True)
-    objects = ControllerManager()
+    objects = ControllerQuerySet.as_manager()
 
     def __str__(self):
         return self.name
@@ -106,7 +106,7 @@ class Component(models.Model):
         ordering = ("name",)
 
 
-class SubjectManager(models.Manager):
+class SubjectQuerySet(models.QuerySet):
     def with_counts(self):
         today_start = timezone.localtime(timezone.now()).replace(
             hour=0, minute=0, second=0
@@ -123,7 +123,7 @@ class Subject(models.Model):
 
     id = models.AutoField(primary_key=True)
     name = models.SlugField(max_length=36, unique=True)
-    objects = SubjectManager()
+    objects = SubjectQuerySet.as_manager()
 
     def n_trials_today(self):
         today_start = timezone.localtime(timezone.now()).replace(

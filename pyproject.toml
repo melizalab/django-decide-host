@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-decide-host"
-version = "0.3.10"
+version = "0.3.11"
 description = "A Django-based database for trials and events in the decide operant control system"
 readme = "README.rst"
 requires-python = ">=3.10"
