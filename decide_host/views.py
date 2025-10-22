@@ -131,7 +131,7 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     `subject`.
 
     Date-based filters: `time__date` for a specific date, `date_before` and
-    `date_after` to specify a range. Ranges are exclusive. Format dates as `YYYY-MM-DD`.
+    `date_after` to specify a range. range is inclusive. Format dates as `YYYY-MM-DD`.
 
     Exclude comments with the query `nocomment=true`.
 

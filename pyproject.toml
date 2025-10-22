@@ -54,7 +54,7 @@ django_find_project = false
 python_files = ["test_*.py", "*_test.py"]
 addopts = "-v --cov=decide_host --cov-report=term-missing"
 testpaths = ["decide_host/tests"]
-env_viles = [".env", ".test.env", "deploy.env"]
+env_files = [".env", ".test.env", "deploy.env"]
 
 [tool.black]
 line-length = 88

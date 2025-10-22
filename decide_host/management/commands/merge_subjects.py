@@ -1,7 +1,6 @@
 # -*- mode: python -*-
 """Combine duplicate subject objects using the Django ORM"""
 
-
 from django.core.management.base import BaseCommand
 
 from decide_host.models import Subject
