@@ -45,9 +45,9 @@ jobs:
         DJANGO_VERSION: ${{ matrix.django-version }}
       run: |
         uv sync --frozen --group postgres
-        uv add "Django~=${DJANGO_VERSION}"
+        uv pip install "Django~=${DJANGO_VERSION}.0"
     - name: Run tests on python ${{ matrix.python-version }}
       env:
         DECIDE_TEST_DB: postgres
         POSTGRES_HOST: localhost
-      run: uv run pytest
+      run: uv run --no-sync pytest
