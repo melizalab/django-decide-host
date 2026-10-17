@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -47,7 +46,10 @@ jobs:
       env:
         DJANGO_VERSION: ${{ matrix.django-version }}
       run: |
-        uv sync --frozen
+        uv sync --frozen --group postgres
         uv add "Django~=${DJANGO_VERSION}"
     - name: Run tests on python ${{ matrix.python-version }}
-      run: uv run pytest        
+      env:
+        DECIDE_TEST_DB: postgres
+        POSTGRES_HOST: localhost
+      run: uv run pytest
