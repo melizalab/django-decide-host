@@ -59,6 +59,7 @@ TEMPLATES = [
     },
 ]
 
+TIME_ZONE = "UTC"
 USE_TZ = True
 DEBUG = True
 ROOT_URLCONF = "decide_host.tests.urls"
