@@ -227,6 +227,10 @@ class TrialList(StreamingNDJSONMixin, DataFieldFilterMixin, generics.ListCreateA
     query `data__correct=True`. Values that look like booleans, numbers, or
     `null` also match the corresponding JSON values.
 
+    Comparisons on `data__` fields (e.g. `data__rtime__lt=500`) compare the value
+    as a string, so they don't work for numeric fields. Retrieve the records and
+    filter numeric fields during analysis instead.
+
     Multiple queries produce a more restrictive filter.
 
     Results are paginated. Use `page_size` to set the number of records per page
