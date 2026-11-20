@@ -1,9 +1,13 @@
 # -*- mode: python -*-
 
 import ipaddress
+import json
 import logging
+import math
 
 from django.conf import settings
+from django.db.models import Q
+from django.db.models.fields.json import KeyTransform
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
@@ -72,14 +76,55 @@ class IsAuthorizedSubnetOrReadOnly(permissions.BasePermission):
             return False
 
 
+_NOT_SCALAR = object()
+
+
+def parse_json_scalar(value: str):
+    """Parse a query string value as a JSON boolean, number, or null.
+
+    Python-style True and False are also accepted. Returns _NOT_SCALAR for any
+    other value.
+
+    """
+    if value in ("True", "False"):
+        return value == "True"
+    try:
+        parsed = json.loads(value)
+    except ValueError:
+        return _NOT_SCALAR
+    if parsed is None or isinstance(parsed, bool | int):
+        return parsed
+    if isinstance(parsed, float) and math.isfinite(parsed):
+        return parsed
+    return _NOT_SCALAR
+
+
 class DataFieldFilterMixin:
-    """Provides filtering based on components of the data JSONField"""
+    """Provides filtering based on components of the data JSONField.
+
+    Query string values are always strings, so for exact matches, values that
+    parse as booleans, numbers, or null also match the corresponding JSON
+    values. For example, `data__correct=true` matches `{"correct": true}`, and
+    `data__stim=123` matches both `{"stim": 123}` and `{"stim": "123"}`.
+
+    """
+
+    key_lookups = frozenset(KeyTransform.get_lookups())
 
     def filter_queryset(self, queryset):
         qs = super().filter_queryset(queryset)
         # this could be a little dangerous b/c we're letting the user design queries
-        mq = {k: v for k, v in self.request.GET.items() if k.startswith("data__")}
-        return qs.filter(**mq)
+        for key, value in self.request.GET.items():
+            if not key.startswith("data__"):
+                continue
+            q = Q(**{key: value})
+            lookup = key.rsplit("__", 1)[-1]
+            if lookup == "exact" or lookup not in self.key_lookups:
+                parsed = parse_json_scalar(value)
+                if parsed is not _NOT_SCALAR:
+                    q |= Q(**{key: parsed})
+            qs = qs.filter(q)
+        return qs
 
 
 class StreamingNDJSONMixin:
@@ -179,7 +224,8 @@ class TrialList(StreamingNDJSONMixin, DataFieldFilterMixin, generics.ListCreateA
     You can filter on other fields of the record, but these need to be prefaced
     by `data__` due to the way they're stored in the database. For example, to
     restrict returned records to ones in which `correct` was `True`, add the
-    query `data__correct=True`.
+    query `data__correct=True`. Values that look like booleans, numbers, or
+    `null` also match the corresponding JSON values.
 
     Multiple queries produce a more restrictive filter.
 

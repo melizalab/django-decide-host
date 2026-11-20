@@ -373,3 +373,73 @@ def test_controller_event_list_ndjson(client, events, controller):
     response = client.get(url, HTTP_ACCEPT=NDJSON)
     assert response.status_code == 200
     assert ndjson_records(response) == expected
+
+
+@pytest.fixture
+def typed_trials(component, controller, subject):
+    t0 = timezone.now()
+    values = [
+        {"correct": True, "trial": 3, "rtime": 0.5, "stim": "123", "comment": None},
+        {"correct": False, "trial": 4, "rtime": 1.5, "stim": "abc", "comment": "x"},
+    ]
+    return Trial.objects.bulk_create(
+        Trial(
+            name=component,
+            addr=controller,
+            subject=subject,
+            time=t0 - datetime.timedelta(seconds=i),
+            data=data,
+        )
+        for i, data in enumerate(values)
+    )
+
+
+@pytest.mark.parametrize(
+    "params,expected_trials",
+    [
+        ({"data__correct": "True"}, [3]),
+        ({"data__correct": "true"}, [3]),
+        ({"data__correct": "False"}, [4]),
+        ({"data__correct": "false"}, [4]),
+        ({"data__trial": "3"}, [3]),
+        ({"data__trial__exact": "4"}, [4]),
+        ({"data__rtime": "1.5"}, [4]),
+        ({"data__stim": "123"}, [3]),  # numeric-looking strings still match
+        ({"data__stim": "abc"}, [4]),
+        ({"data__comment": "null"}, [3]),
+        ({"data__stim__icontains": "AB"}, [4]),  # other lookups are unchanged
+        ({"data__correct": "true", "data__trial": "4"}, []),
+    ],
+)
+def test_trial_list_data_filter_types(client, typed_trials, params, expected_trials):
+    response = client.get(reverse("decide:trial-list"), params)
+    assert response.status_code == 200
+    assert [d["trial"] for d in response.data] == expected_trials
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("true", True),
+        ("True", True),
+        ("false", False),
+        ("False", False),
+        ("null", None),
+        ("3", 3),
+        ("-1.5", -1.5),
+    ],
+)
+def test_parse_json_scalar(value, expected):
+    from decide_host.views import parse_json_scalar
+
+    assert parse_json_scalar(value) == expected
+    assert type(parse_json_scalar(value)) is type(expected)
+
+
+@pytest.mark.parametrize(
+    "value", ["abc", "", '"abc"', "[1]", '{"a": 1}', "NaN", "Infinity", "TRUE"]
+)
+def test_parse_json_scalar_rejects(value):
+    from decide_host.views import _NOT_SCALAR, parse_json_scalar
+
+    assert parse_json_scalar(value) is _NOT_SCALAR
