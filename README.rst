@@ -73,6 +73,15 @@ response header. Set the default page size in your project settings:
 Clients can override this with the ``page_size`` query parameter, up to a
 maximum of 10000.
 
+To retrieve all matching records in one response, send ``Accept:
+application/x-ndjson`` (or add ``format=ndjson`` to the query). Results are
+streamed as newline-delimited JSON without pagination. Each record is the same
+as in the JSON response. Requests with other ``Accept`` headers, including
+``*/*``, still get paginated JSON. Long streams keep a worker busy for their
+duration, so check your WSGI server's request timeout (e.g. gunicorn
+``--timeout``). If PostgreSQL is behind pgbouncer in transaction pooling mode,
+set ``DISABLE_SERVER_SIDE_CURSORS = True`` in the database settings.
+
 Importing trial data
 ~~~~~~~~~~~~~~~~~~~~
 

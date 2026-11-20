@@ -1,5 +1,6 @@
 # -*- mode: python -*-
 import datetime
+import json
 
 import pytest
 from django.urls import reverse
@@ -235,3 +236,140 @@ def test_event_list_client_page_size(client, component, controller, default_page
     response = client.get(reverse("decide:event-list"), {"page_size": 4})
     assert response.status_code == 200
     assert len(response.data) == 4
+
+
+NDJSON = "application/x-ndjson"
+
+
+def ndjson_records(response):
+    assert response.streaming
+    assert response["Content-Type"] == NDJSON
+    body = b"".join(response.streaming_content).decode()
+    assert body.endswith("\n")
+    return [json.loads(line) for line in body.splitlines()]
+
+
+@pytest.fixture
+def mixed_trials(component, controller, subject):
+    other = Subject.objects.create(name="other_subj")
+    t0 = timezone.now()
+    return Trial.objects.bulk_create(
+        Trial(
+            name=component,
+            addr=controller,
+            subject=subject if i % 2 else other,
+            time=t0 - datetime.timedelta(seconds=i, microseconds=i),
+            data={
+                "trial": i,
+                "correct": i % 3 == 0,
+                "result": "feed" if i % 3 == 0 else "none",
+                "stim": "é",
+                "nested": [1, {}],
+            },
+        )
+        for i in range(7)
+    )
+
+
+@pytest.mark.parametrize(
+    "params",
+    [{}, {"subject": "ruby_230"}, {"data__result": "feed"}, {"nocomment": True}],
+)
+def test_trial_list_ndjson_matches_json(client, mixed_trials, params):
+    expected = client.get(
+        reverse("decide:trial-list"), params, HTTP_ACCEPT="application/json"
+    ).json()
+    assert len(expected) > 0
+    response = client.get(reverse("decide:trial-list"), params, HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert ndjson_records(response) == expected
+
+
+def test_trial_list_ndjson_is_not_paginated(client, trials, default_page_size):
+    response = client.get(reverse("decide:trial-list"), HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert "Link" not in response.headers
+    assert [d["trial"] for d in ndjson_records(response)] == [0, 1, 2, 3, 4]
+
+
+def test_trial_list_ndjson_batches(client, trials, monkeypatch):
+    from decide_host.views import TrialList
+
+    monkeypatch.setattr(TrialList, "stream_chunk_size", 2)
+    response = client.get(reverse("decide:trial-list"), HTTP_ACCEPT=NDJSON)
+    chunks = list(response.streaming_content)
+    assert len(chunks) == 3
+    lines = b"".join(chunks).decode().splitlines()
+    assert [json.loads(line)["trial"] for line in lines] == [0, 1, 2, 3, 4]
+
+
+def test_trial_list_ndjson_format_param(client, trials):
+    response = client.get(reverse("decide:trial-list"), {"format": "ndjson"})
+    assert response.status_code == 200
+    assert len(ndjson_records(response)) == 5
+
+
+def test_trial_list_ndjson_empty(client, db):
+    response = client.get(reverse("decide:trial-list"), HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert b"".join(response.streaming_content) == b""
+
+
+def test_trial_list_wildcard_accept_is_paginated_json(
+    client, trials, default_page_size
+):
+    response = client.get(reverse("decide:trial-list"), HTTP_ACCEPT="*/*")
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/json"
+    assert len(response.json()) == 2
+    assert "Accept" in response["Vary"]
+
+
+def test_subject_trial_list_ndjson(client, mixed_trials, subject):
+    url = reverse("decide:subject-trial-list", args=[subject.name])
+    expected = client.get(url, HTTP_ACCEPT="application/json").json()
+    response = client.get(url, HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert ndjson_records(response) == expected
+
+
+def test_subject_trial_list_ndjson_unknown_subject(client, db):
+    url = reverse("decide:subject-trial-list", args=["nobody"])
+    response = client.get(url, HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 404
+    assert not response.streaming
+    assert json.loads(response.content) == {
+        "detail": "No Subject matches the given query."
+    }
+
+
+@pytest.fixture
+def events(component, controller):
+    t0 = timezone.now()
+    return Event.objects.bulk_create(
+        Event(
+            name=component,
+            addr=controller,
+            time=t0 - datetime.timedelta(seconds=i),
+            data={"i": i, "state": "up" if i % 2 else "down"},
+        )
+        for i in range(5)
+    )
+
+
+@pytest.mark.parametrize("params", [{}, {"data__state": "up"}])
+def test_event_list_ndjson_matches_json(client, events, params):
+    expected = client.get(
+        reverse("decide:event-list"), params, HTTP_ACCEPT="application/json"
+    ).json()
+    response = client.get(reverse("decide:event-list"), params, HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert ndjson_records(response) == expected
+
+
+def test_controller_event_list_ndjson(client, events, controller):
+    url = reverse("decide:controller-event-list", args=[controller.name])
+    expected = client.get(url, HTTP_ACCEPT="application/json").json()
+    response = client.get(url, HTTP_ACCEPT=NDJSON)
+    assert response.status_code == 200
+    assert ndjson_records(response) == expected

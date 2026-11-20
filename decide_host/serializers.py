@@ -71,6 +71,37 @@ class JSONFlattenMixin:
             internal[flatten_field] = nested
         return internal
 
+    def iter_representations(self, queryset, chunk_size=2000):
+        """Yield the flattened representation of each object in queryset.
+
+        Produces the same output as to_representation, but much faster,
+        because it queries only the needed columns and doesn't construct model
+        instances. Related fields must be SlugRelatedFields.
+
+        """
+        flatten_field = self.Meta.flatten
+        names, lookups, converters = [], [], []
+        for name, field in self.fields.items():
+            if field.write_only or name == flatten_field:
+                continue
+            names.append(name)
+            if isinstance(field, serializers.SlugRelatedField):
+                lookups.append(f"{field.source}__{field.slug_field}")
+                converters.append(None)
+            else:
+                lookups.append(field.source)
+                converters.append(field.to_representation)
+        lookups.append(self.fields[flatten_field].source)
+        fields = list(zip(names, converters, strict=True))
+        rows = queryset.values_list(*lookups).iterator(chunk_size=chunk_size)
+        for row in rows:
+            repr = {
+                name: value if convert is None or value is None else convert(value)
+                for (name, convert), value in zip(fields, row, strict=False)
+            }
+            repr.update(row[-1])
+            yield repr
+
 
 class ControllerSerializer(serializers.ModelSerializer):
     n_events = serializers.IntegerField(read_only=True)
