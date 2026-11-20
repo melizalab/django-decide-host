@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 class LinkHeaderPaginationByTimestamp(LinkHeaderPagination):
     ordering = "-time"
+    page_size_query_param = "page_size"
+    max_page_size = 10000
 
 
 @api_view(["HEAD", "GET"])
@@ -141,6 +143,9 @@ class TrialList(DataFieldFilterMixin, generics.ListCreateAPIView):
     query `data__correct=True`.
 
     Multiple queries produce a more restrictive filter.
+
+    Results are paginated. Use `page_size` to set the number of records per page
+    (maximum 10000). Links to other pages are in the `Link` response header.
 
     Example: "?subject=P24&date_after=2022-02-01&date_before=2022-02-28"
 

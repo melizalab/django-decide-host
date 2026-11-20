@@ -60,6 +60,19 @@ Quick start
    http://127.0.0.1:8000/decide/api/ to view records and inspect
    the API.
 
+Pagination
+~~~~~~~~~~
+
+Trial and event lists are paginated, with links to other pages in the ``Link``
+response header. Set the default page size in your project settings:
+
+.. code:: python
+
+   REST_FRAMEWORK = {"PAGE_SIZE": 1000}
+
+Clients can override this with the ``page_size`` query parameter, up to a
+maximum of 10000.
+
 Importing trial data
 ~~~~~~~~~~~~~~~~~~~~
 
